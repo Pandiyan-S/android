@@ -1,472 +1,453 @@
-package com.example.test1;
+package com.example.calculator;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.annotation.SuppressLint;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
 import android.widget.Button;
-import android.widget.GridLayout;
 import android.widget.TextView;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Stack;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener
 {
-    String xo = "";
-    char[][] mat = new char[3][3];
+    StringBuilder equation = new StringBuilder();
+    int openBrackets = 0;
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        clickEvents();
+        Button num1 = findViewById(R.id.num1);
+        Button num2 = findViewById(R.id.num2);
+        Button num3 = findViewById(R.id.num3);
+        Button num4 = findViewById(R.id.num4);
+        Button num5 = findViewById(R.id.num5);
+        Button num6 = findViewById(R.id.num6);
+        Button num7 = findViewById(R.id.num7);
+        Button num8 = findViewById(R.id.num8);
+        Button num9 = findViewById(R.id.num9);
+        Button num0 = findViewById(R.id.num0);
+        Button multiply = findViewById(R.id.multiply);
+        Button divide = findViewById(R.id.divide);
+        Button subtract = findViewById(R.id.minus);
+        Button add = findViewById(R.id.plus);
+        Button bracket = findViewById(R.id.bracket);
+        Button backSpace = findViewById(R.id.backspace);
+        Button equal = findViewById(R.id.equal);
+        num1.setOnClickListener(this);
+        num2.setOnClickListener(this);
+        num3.setOnClickListener(this);
+        num4.setOnClickListener(this);
+        num5.setOnClickListener(this);
+        num6.setOnClickListener(this);
+        num7.setOnClickListener(this);
+        num8.setOnClickListener(this);
+        num9.setOnClickListener(this);
+        num0.setOnClickListener(this);
+        multiply.setOnClickListener(this);
+        divide.setOnClickListener(this);
+        subtract.setOnClickListener(this);
+        add.setOnClickListener(this);
+        bracket.setOnClickListener(this);
+        backSpace.setOnClickListener(this);
+        equal.setOnClickListener(this);
     }
-
-    private void clickEvents()
-    {
-        Button cross = (Button) findViewById(R.id.cross);
-        Button zero = (Button) findViewById(R.id.zero);
-        Button retry = findViewById(R.id.yes);
-        Button exit = findViewById(R.id.no);
-        cross.setOnClickListener(this);
-        zero.setOnClickListener(this);
-        TextView top1 = (TextView) findViewById(R.id.top1);
-        TextView top2 = (TextView) findViewById(R.id.top2);
-        TextView top3 = (TextView) findViewById(R.id.top3);
-        TextView mid1 = (TextView) findViewById(R.id.mid1);
-        TextView mid2 = (TextView) findViewById(R.id.mid2);
-        TextView mid3 = (TextView) findViewById(R.id.mid3);
-        TextView bottom1 = (TextView) findViewById(R.id.bottom1);
-        TextView bottom2 = (TextView) findViewById(R.id.bottom2);
-        TextView bottom3 = (TextView) findViewById(R.id.bottom3);
-        top1.setOnClickListener(this);
-        top2.setOnClickListener(this);
-        top3.setOnClickListener(this);
-        mid1.setOnClickListener(this);
-        mid2.setOnClickListener(this);
-        mid3.setOnClickListener(this);
-        bottom1.setOnClickListener(this);
-        bottom2.setOnClickListener(this);
-        bottom3.setOnClickListener(this);
-        retry.setOnClickListener(this);
-        exit.setOnClickListener(this);
-    }
-
 
     @Override
     public void onClick(View view)
     {
-        TextView choice = findViewById(R.id.choose);
+
+        int len = equation.length();
+        char lastChar = 0;
+        if(len>=1)
+        {
+            lastChar = equation.charAt(len - 1);
+        }
+        setSize(len);
         switch(view.getId())
         {
-            case R.id.cross:
-                xo = "X";
-                playStart(view);
-                return;
-            case R.id.zero:
-                xo = "O";
-                playStart(view);
-                opponentMove('X');
-                return;
-            case R.id.yes:
-                Log.e("yes","testing");
-                reset();
-                return;
-            case R.id.no:
-                this.finishAffinity();
-                return;
+            case R.id.num1:
+                equation.append("1");
+                break;
+            case R.id.num2:
+                equation.append("2");
+                break;
+            case R.id.num3:
+                equation.append("3");
+                break;
+            case R.id.num4:
+                equation.append("4");
+                break;
+            case R.id.num5:
+                equation.append("5");
+                break;
+            case R.id.num6:
+                equation.append("6");
+                break;
+            case R.id.num7:
+                equation.append("7");
+                break;
+            case R.id.num8:
+                equation.append("8");
+                break;
+            case R.id.num9:
+                equation.append("9");
+                break;
+            case R.id.num0:
+                equation.append("0");
+                break;
+            case R.id.plus:
+                insertPlus(len,lastChar);
+                break;
+            case R.id.multiply:
+                insertMultiply(len,lastChar);
+                break;
+            case R.id.divide:
+                insertDivide(len,lastChar);
+                break;
+            case R.id.minus:
+                insertMinus(len,lastChar);
+                break;
+            case R.id.bracket:
+                insertBracket(len,lastChar);
+                break;
+            case R.id.backspace:
+                if(len>=1)
+                {
+                    equation.deleteCharAt(len - 1);
+                }
+                break;
+            case R.id.equal:
+                try
+                {
+                    setFinalValue(len);
+                }
+                catch(Exception e)
+                {
+                    equation = new StringBuilder("something went wrong");
+                }
+                break;
         }
-        int val = playerMove(view);
-        Log.e("play",String.valueOf(val));
-        if(checkGameOver(val,xo.charAt(0)))
+        TextView screen = findViewById(R.id.screen);
+        screen.setText(equation);
+    }
+
+    private void setSize(int len)
+    {
+        TextView screen = findViewById(R.id.screen);
+        if(len>13)
+        {
+            screen.setTextSize(2,24);
+            return;
+        }
+        screen.setTextSize(2,34);
+    }
+
+    private void setFinalValue(int len)
+    {
+        for(int i=0; i<openBrackets; i++)
+        {
+            equation.append(")");
+        }
+        openBrackets = 0;
+        if(len == 0)
         {
             return;
         }
-        char opp = '0';
-        if(xo == "X")
+        if(len == 1)
         {
-            opp = 'O';
+            if(Character.isDigit(equation.charAt(0)))
+            {
+                return;
+            }
+            equation = new StringBuilder("0");
+        }
+        String postFix = convertPostfix();
+        double answer = findAnswer(postFix);
+        Log.e("check",String.valueOf(answer));
+        if(String.valueOf(answer).equals("Infinity"))
+        {
+            equation = new StringBuilder("divide by zero error");
+            return;
+        }
+        else if(answer == (long)answer)
+        {
+            equation = new StringBuilder(String.valueOf((long) answer));
         }
         else
         {
-            opp = 'X';
-        }
-        val = opponentMove(opp);
-        if(checkGameOver(val,opp))
-        {
-            return;
+            equation = new StringBuilder(String.valueOf(answer));
         }
     }
 
-
-    private boolean checkGameOver(int val,char opp)
+    private double findAnswer(String postFix)
     {
-        TextView choice = findViewById(R.id.choose);
-        if(val == -1)
+        Stack<Double> stack = new Stack<>();
+        String[] str = postFix.split(" ");
+        for(int i=0; i<str.length;i++)
         {
-            choice.setText("Illegal move");
-            choice.setTextColor(Color.parseColor("#FFCA0707"));
-            return false;
-        }
-        else if(val == -2)
-        {
-            choice.setText("Box is occupied");
-            choice.setTextColor(Color.parseColor("#FFCA0707"));
-            return false;
-        }
-        if(checkResult(val/3,val%3,opp))
-        {
-            if(opp == xo.charAt(0))
+            String element = str[i];
+            if(element.isEmpty())
             {
-                choice.setText("You won");
-                choice.setTextColor(Color.parseColor("#2E6C06"));
-                retry();
+                continue;
+            }
+            if(Character.isDigit(element.charAt(0)) || (element.length()>1 && Character.isDigit(element.charAt(1))))
+            {
+                stack.push(Double.parseDouble(element));
             }
             else
             {
-                choice.setText("You lost");
-                choice.setTextColor(Color.parseColor("#B32121"));
-                retry();
+                double no1 = stack.pop();
+                double no2;
+                if(stack.empty())
+                {
+                    no2 = no1;
+                    no1 = 0;
+                }
+                else
+                {
+                    no2 = stack.pop();
+                }
+                switch(element)
+                {
+                    case "+":
+                        stack.push(no2 + no1);
+                        break;
+                    case "-":
+                        stack.push(no2 - no1);
+                        break;
+                    case "*":
+                        stack.push(no2 * no1);
+                        break;
+                    case "/":
+                        stack.push(no2 / no1);
+                        break;
+                }
             }
-            return true;
         }
-        if(checkDraw())
+        return stack.pop();
+    }
+
+    private String convertPostfix()
+    {
+        String result = "";
+
+        Stack<Character> stack = new Stack<>();
+        if(!checkHasDigit())
         {
-            choice.setText("This is a draw");
-            choice.setTextColor(Color.parseColor("#2E6C06"));
-            retry();
-            return true;
+            result += "0";
+        }
+        for (int i = 0; i < equation.length(); i++)
+        {
+            char ch = equation.charAt(i);
+            if(ch == '-' && i== 0)
+            {
+                result += ch;
+            }
+            else if(ch == '-' && i>=1 && (equation.charAt(i-1) == '/' || equation.charAt(i-1) == '*' || equation.charAt(i-1) == '('))
+            {
+                result += ch;
+            }
+            else if (Character.isDigit(ch) || ch == '.')
+            {
+                result += ch;
+            }
+            else if (ch == '(')
+            {
+                result += " ";
+                stack.push(ch);
+            }
+            else if (ch == ')')
+            {
+                result += " ";
+                while (!stack.isEmpty() && stack.peek() != '(')
+                {
+                    result += stack.pop() + " ";
+                }
+                stack.pop();
+            }
+            else
+            {
+                result += " ";
+                while (!stack.isEmpty() && (priority(ch) <= priority(stack.peek())))
+                {
+                    result += stack.pop() + " ";
+                }
+                stack.push(ch);
+            }
+        }
+        while (!stack.isEmpty())
+        {
+            result += " " + stack.pop() + " ";
+        }
+        return result;
+    }
+
+    private boolean checkHasDigit()
+    {
+        for(int i=0;i<equation.length();i++)
+        {
+            if(Character.isDigit(equation.charAt(i)))
+            {
+                return true;
+            }
         }
         return false;
     }
 
-    private int opponentMove(char opp)
+    private int priority(Character ch)
     {
-        TextView cell = null;
-        List<Integer> list = getList();
-        int no = -1;
-        for(int i: list)
+        switch(ch)
         {
-            Log.e("list",String.valueOf(i));
-        }
-        while(!list.contains(no))
-        {
-            no = findPos(opp);
-            if (no == -1)
-            {
-                no = findPos(xo.charAt(0));
-            }
-            if (no == -1)
-            {
-                no = (int) (Math.random() * 9);
-                Log.e("exe", "String.valueOf(no)");
-            }
-        }
-        switch (no)
-        {
-            case 0:
-                cell = findViewById(R.id.top1);
-                break;
-            case 1:
-                cell = findViewById(R.id.top2);
-                break;
-            case 2:
-                cell = findViewById(R.id.top3);
-                break;
-            case 3:
-                cell = findViewById(R.id.mid1);
-                break;
-            case 4:
-                cell = findViewById(R.id.mid2);
-                break;
-            case 5:
-                cell = findViewById(R.id.mid3);
-                break;
-            case 6:
-                cell = findViewById(R.id.bottom1);
-                break;
-            case 7:
-                cell = findViewById(R.id.bottom2);
-                break;
-            case 8:
-                cell = findViewById(R.id.bottom3);
-                break;
-        }
-        displayInsert(cell,opp);
-        mat[no/3][no%3] = opp;
-        return no;
-    }
-
-    private List<Integer> getList()
-    {
-        List<Integer> list = new ArrayList<>();
-        for(int i=0; i<9; i++)
-        {
-            int a = i/3;
-            int b = i%3;
-            if(mat[a][b] == 'X' || mat[a][b] == 'O')
-            {
-                Log.e("res",String.valueOf(a)+String.valueOf(b));
-                continue;
-            }
-            list.add(i);
-        }
-        return list;
-    }
-
-    private int findPos(char opp)
-    {
-        int no = -1;
-        if(mat[0][0] == '\u0000' && ((mat[0][2] == mat[0][1] && mat[0][2] == opp) || (mat[2][0] == mat[1][0] && mat[2][0] == opp) || (mat[2][2] == mat[1][1] && mat[2][2] == opp)))
-        {
-            mat[0][0] = opp;
-            no = 0;
-            Log.e("exe",String.valueOf(no));
-        }
-        else if(mat[0][1] == '\u0000' && ((mat[0][2] == mat[0][0] && mat[0][2] == opp) || (mat[2][1] == mat[1][1] && mat[2][1] == opp)))
-        {
-            mat[0][1] = opp;
-            no = 1;
-            Log.e("exe",String.valueOf(no));
-        }
-        else if(mat[0][2] == '\u0000' && ((mat[0][1] == mat[0][0] && mat[0][1] == opp) || (mat[1][2] == mat[2][2] && mat[2][2] == opp) || (mat[2][0] == mat[1][1] && mat[2][0] == opp)))
-        {
-            mat[0][2] = opp;
-            no = 2;
-            Log.e("exe",String.valueOf(no));
-        }
-        else if(mat[1][0] == '\u0000' && ((mat[1][1] == mat[1][2] && mat[1][1] == opp) || (mat[0][0] == mat[2][0] && mat[2][0] == opp)))
-        {
-            mat[1][0] = opp;
-            no = 3;
-            Log.e("exe",String.valueOf(no));
-        }
-        else if(mat[1][1] == '\u0000' && ((mat[0][1] == mat[2][1] && mat[0][1] == opp) || (mat[1][2] == mat[1][0] && mat[1][2] == opp) || (mat[2][0] == mat[0][2] && mat[2][0] == opp) || (mat[0][0] == mat[2][2] && mat[2][2] == opp)))
-        {
-            mat[1][1] = opp;
-            no = 4;
-            Log.e("exe",String.valueOf(no));
-        }
-        else if(mat[1][2] == '\u0000' && ((mat[1][1] == mat[1][0] && mat[1][1] == opp) || (mat[0][2] == mat[2][2] && mat[2][2] == opp)))
-        {
-            mat[1][2] = opp;
-            no = 5;
-            Log.e("exe",String.valueOf(no));
-        }
-        else if(mat[2][0] == '\u0000' && ((mat[0][0] == mat[1][0] && mat[1][0] == opp) || (mat[2][1] == mat[2][2] && mat[2][2] == opp) || (mat[1][1] == mat[0][2] && mat[0][2] == opp)))
-        {
-            mat[2][0] = opp;
-            no = 6;
-            Log.e("exe",String.valueOf(no));
-        }
-        else if(mat[2][1] == '\u0000' && ((mat[1][1] == mat[0][1] && mat[1][1] == opp) || (mat[2][0] == mat[2][2] && mat[2][2] == opp)))
-        {
-            mat[2][1] = opp;
-            no = 7;
-            Log.e("exe",String.valueOf(no));
-        }
-        else if(mat[2][2] == '\u0000' && ((mat[2][1] == mat[2][0] && mat[2][1] == opp) || (mat[0][2] == mat[1][2] && mat[0][2] == opp) || (mat[0][0] == mat[1][1] && mat[0][0] == opp)))
-        {
-            mat[2][2] = opp;
-            no = 8;
-            Log.e("exe",String.valueOf(no));
-        }
-        return no;
-    }
-
-    private void retry()
-    {
-        findViewById(R.id.grid).setVisibility(View.GONE);
-        findViewById(R.id.yes).setVisibility(View.VISIBLE);
-        findViewById(R.id.no).setVisibility(View.VISIBLE);
-        findViewById(R.id.retry).setVisibility(View.VISIBLE);
-    }
-
-    private boolean checkDraw()
-    {
-        List<Integer> list = getList();
-        if(list.isEmpty())
-        {
-            return true;
-        }
-        return false;
-    }
-
-    private void displayInsert(TextView cell, char opp)
-    {
-        cell.setText(String.valueOf(opp));
-        if(opp == 'O')
-        {
-            cell.setTextColor(Color.parseColor("#FFFFFF"));
-        }
-    }
-
-    private int playerMove(View view)
-    {
-        TextView box = findViewById(view.getId());
-        if(box.getText().equals("X") || box.getText().equals("O"))
-        {
-            Log.e("exe","show");
-            return -2;
-        }
-        else
-        {
-            TextView choice = findViewById(R.id.choose);
-            choice.setText("Let's Play");
-        }
-        box.setText(xo);
-        if(xo.equals("O"))
-        {
-            box.setTextColor(Color.parseColor("#FFFFFF"));
-        }
-        return matrixInsert(view.getId());
-    }
-
-    private int matrixInsert(int no)
-    {
-        switch(no)
-        {
-            case R.id.bottom1:
-                mat[2][0] = xo.charAt(0);
-                return 6;
-            case R.id.bottom2:
-                mat[2][1] = xo.charAt(0);
-                return 7;
-            case R.id.bottom3:
-                mat[2][2] = xo.charAt(0);
-                return 8;
-            case R.id.top1:
-                mat[0][0] = xo.charAt(0);
-                return 0;
-            case R.id.top2:
-                mat[0][1] = xo.charAt(0);
+            case '-':
+            case '+':
                 return 1;
-            case R.id.top3:
-                mat[0][2] = xo.charAt(0);
+            case '*':
+            case '/':
                 return 2;
-            case R.id.mid1:
-                mat[1][0] = xo.charAt(0);
-                return 3;
-            case R.id.mid2:
-                mat[1][1] = xo.charAt(0);
-                return 4;
-            case R.id.mid3:
-                mat[1][2] = xo.charAt(0);
-                return 5;
         }
-        Log.e("insert",String.valueOf(no));
         return -1;
     }
 
-    private void playStart(View view)
+    private void insertPlus(int len,char lastChar)
     {
-        findViewById(R.id.grid).setVisibility(View.VISIBLE);
-        TextView choice = findViewById(R.id.choose);
-        choice.setText("Let's Play");
-        findViewById(R.id.zero).setVisibility(View.GONE);
-        findViewById(R.id.cross).setVisibility(View.GONE);
+        if(len>=1)
+        {
+            if(lastChar == '-')
+            {
+                return;
+            }
+            else if ((lastChar < '0' || lastChar > '9') && lastChar != '(' && lastChar != ')')
+            {
+                equation.deleteCharAt(len - 1);
+            }
+            else if (lastChar != '(')
+            {
+                equation.append("+");
+            }
+        }
     }
 
-    private void reset()
+    private void insertMultiply(int len,char lastChar)
     {
-        xo = "";
-        mat = new char[3][3];
-        TextView choice = findViewById(R.id.choose);
-        choice.setText("Choose");
-        choice.setTextColor(Color.parseColor("#000000"));
-        findViewById(R.id.yes).setVisibility(View.GONE);
-        findViewById(R.id.no).setVisibility(View.GONE);
-        findViewById(R.id.retry).setVisibility(View.GONE);
-        findViewById(R.id.cross).setVisibility(View.VISIBLE);
-        findViewById(R.id.zero).setVisibility(View.VISIBLE);
-        TextView top1 = findViewById(R.id.top1);
-        TextView top2 = findViewById(R.id.top2);
-        TextView top3 = findViewById(R.id.top3);
-        TextView mid1 = findViewById(R.id.mid1);
-        TextView mid2 = findViewById(R.id.mid2);
-        TextView mid3 = findViewById(R.id.mid3);
-        TextView bottom1 = findViewById(R.id.bottom1);
-        TextView bottom2 = findViewById(R.id.bottom2);
-        TextView bottom3 = findViewById(R.id.bottom3);
-        top1.setText("");
-        top1.setTextColor(Color.parseColor("#000000"));
-        top2.setText("");
-        top2.setTextColor(Color.parseColor("#000000"));
-        top3.setText("");
-        top3.setTextColor(Color.parseColor("#000000"));
-        bottom1.setText("");
-        bottom1.setTextColor(Color.parseColor("#000000"));
-        bottom2.setText("");
-        bottom2.setTextColor(Color.parseColor("#000000"));
-        bottom3.setText("");
-        bottom3.setTextColor(Color.parseColor("#000000"));
-        mid1.setText("");
-        mid1.setTextColor(Color.parseColor("#000000"));
-        mid2.setText("");
-        mid2.setTextColor(Color.parseColor("#000000"));
-        mid3.setText("");
-        mid3.setTextColor(Color.parseColor("#000000"));
-        return;
+        if(len>=1)
+        {
+            if(lastChar == '-' && len>=2)
+            {
+                if(equation.charAt(len-2) == '(' || equation.charAt(len-2) == '*' || equation.charAt(len-2) == '/')
+                {
+                    return;
+                }
+            }
+            else if ((lastChar < '0' || lastChar > '9') && lastChar != '(' && lastChar != ')')
+            {
+                equation.deleteCharAt(len - 1);
+                equation.append("*");
+            }
+            else if (lastChar != '(')
+            {
+                equation.append("*");
+            }
+        }
     }
 
-    private boolean checkResult(int a,int b, char opp)
+    private void insertDivide(int len,char lastChar)
     {
-        Log.e("resche",String.valueOf(a)+String.valueOf(b));
-        for(int i=0; i<3; i++)
+        if(len>=1)
         {
-            if(mat[a][i] != opp)
+            if(lastChar == '-' && len>2)
             {
-                break;
-            }
-            if(i == 2)
-            {
-                return true;
-            }
-        }
-        for(int i=0;i<3; i++)
-        {
-            if(mat[i][b] != opp)
-            {
-                break;
-            }
-            if(i == 2)
-            {
-                return true;
-            }
-        }
-        if(a == b)
-        {
-            for(int i=0; i<3; i++)
-            {
-                if(mat[i][i] != opp)
+                if(equation.charAt(len-2) == '(' || equation.charAt(len-2) == '*' || equation.charAt(len-2) == '/')
                 {
-                    break;
-                }
-                if(i == 2)
-                {
-                    return true;
+                    return;
                 }
             }
-        }
-        if(a + b == 2)
-        {
-            for(int i=0; i<3; i++)
+            else if ((lastChar < '0' || lastChar > '9') && lastChar != '(' && lastChar != ')')
             {
-                if(mat[2-i][i] != opp)
-                {
-                    break;
-                }
-                if(i == 2)
-                {
-                    return true;
-                }
+                equation.deleteCharAt(len - 1);
+            }
+            else if (lastChar != '(')
+            {
+                equation.append("/");
             }
         }
-        return false;
+    }
+
+    private void insertMinus(int len,char lastChar)
+    {
+        if(len>=2)
+        {
+            if((equation.charAt(len-2) >= '0' && equation.charAt(len-2) <= '9') || equation.charAt(len-2) == ')')
+            {
+                if(lastChar == '-')
+                {
+                    equation.deleteCharAt(len - 1);
+                    equation.append("+");
+                    return;
+                }
+            }
+            else
+            {
+                if(lastChar == '-')
+                {
+                    equation.deleteCharAt(len - 1);
+                    return;
+                }
+            }
+            if(lastChar == '+')
+            {
+                equation.deleteCharAt(len - 1);
+            }
+            equation.append("-");
+        }
+        else if(len>=1)
+        {
+            if(lastChar == '-')
+            {
+                equation.deleteCharAt(len - 1);
+                return;
+            }
+            if(lastChar == '+')
+            {
+                equation.deleteCharAt(len - 1);
+            }
+            equation.append("-");
+        }
+        else
+        {
+            equation.append("-");
+        }
+    }
+
+    private void insertBracket(int len,char lastChar)
+    {
+        if(len == 0)
+        {
+            equation.append("(");
+            openBrackets++;
+            return;
+        }
+        if((lastChar >= '0' && lastChar <= '9') || lastChar == ')')
+        {
+            if(openBrackets!=0)
+            {
+                equation.append(")");
+                openBrackets--;
+            }
+            else
+            {
+                equation.append("*");
+                equation.append("(");
+                openBrackets++;
+            }
+        }
+        else
+        {
+            equation.append("(");
+            openBrackets++;
+        }
     }
 }
